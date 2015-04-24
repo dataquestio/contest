@@ -1,4 +1,4 @@
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 
 
 class Algorithm(object):
@@ -16,7 +16,7 @@ class Algorithm(object):
         """
 
         # Create a new classifier.
-        self.clf = LinearRegression()
+        self.clf = LogisticRegression()
         self.collist = []
 
     def train(self, df, to_predict):
