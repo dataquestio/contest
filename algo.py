@@ -21,7 +21,7 @@ class Algorithm(object):
         self.clf = KNeighborsRegressor()
         # Create a vectorizer to extract features.
         # Important to make this a class attribute, as the vocab needs to be the same for train and prediction sets.
-        self.vectorizer = CountVectorizer(min_df=5, stop_words="english")
+        self.vectorizer = CountVectorizer(min_df=20, stop_words="english")
 
     def generate_df(self, data):
         """
