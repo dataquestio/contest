@@ -1,5 +1,7 @@
 """
 Run tests on the data.  Used when submitting the answer.
+
+Usage -- python test.py TRAINING_FILE_PATH PREDICTION_FILE_PATH
 """
 
 import argparse
@@ -25,17 +27,28 @@ if __name__ == "__main__":
 
     # Read the training file.
     with open(args.train_file) as f:
-        train_df = pd.read_csv(f)
+        train_data = f.read()
 
     with open(args.prediction_file) as f:
-        prediction_df = pd.read_csv(f)
+        prediction_data = f.read()
 
     start = time.time()
-    # Initialize and train the algorithm.
+    # Initialize the algorithm class.
     alg = Algorithm()
-    alg.train(train_df, settings.PREDICTION_COLUMN)
 
-    predictions = alg.predict(prediction_df)
+    # Generate a dataframe from the train text.
+    train_df = alg.generate_df(train_data)
+    # Get the features from the dataframe
+    train_features = alg.generate_features(train_df, type="train")
+    # Train the algorithm using the training features.
+    alg.train(train_features, train_df["score"])
+
+    # Generate a prediction dataframe.
+    prediction_df = alg.generate_df(prediction_data)
+    # Generate features from the dataframe
+    prediction_features = alg.generate_features(prediction_df, type="test")
+    # Make predictions using the prediction dataframe.
+    predictions = alg.predict(prediction_features)
 
     # Find how long it took to execute.
     execution_time = time.time() - start
