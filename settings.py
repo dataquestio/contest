@@ -1,3 +1,8 @@
+"""
+Settings that can be imported into other modules.
+Used for global configuration.
+"""
+
 import os
 
 BASE_DIR = os.path.dirname(__file__)
