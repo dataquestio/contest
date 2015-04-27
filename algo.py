@@ -1,7 +1,9 @@
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.pipeline import Pipeline
 import re
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from scipy.sparse import hstack, csr_matrix
 
 class Algorithm(object):
     """
@@ -18,10 +20,11 @@ class Algorithm(object):
         """
 
         # Create a new classifier.
-        self.clf = LinearRegression()
+        self.clf = Ridge()
         # Create a vectorizer to extract features.
         # Important to make this a class attribute, as the vocab needs to be the same for train and prediction sets.
-        self.vectorizer = CountVectorizer(min_df=20, stop_words="english")
+        self.vectorizer = Pipeline([('vect', CountVectorizer(min_df=20, stop_words="english")),
+                                    ('tfidf', TfidfTransformer())])
 
     def generate_df(self, data):
         """
@@ -70,10 +73,20 @@ class Algorithm(object):
         """
         # Extract features.
         if type == "train":
-            features = self.vectorizer.fit_transform(df["text"])
+            algorithmic_features = self.vectorizer.fit_transform(df["text"])
         else:
-            features = self.vectorizer.transform(df["text"])
-        return features
+            algorithmic_features = self.vectorizer.transform(df["text"])
+        hand_chosen_features = pd.DataFrame(
+                                    {'summary_length': df.summary.apply(lambda x: len(x)),
+                                    'review_length': df.text.apply(lambda x: len(x)),
+                                    'summary_exclams': df.summary.apply(lambda x: x.count("!")),
+                                    'review_exclams': df.text.apply(lambda x: x.count("!")),
+                                    'summary_question_marks': df.text.apply(lambda x: x.count("?")),
+                                    'review_question_marks': df.text.apply(lambda x: x.count("?"))})
+
+        features = hstack([algorithmic_features, hand_chosen_features])
+
+        return algorithmic_features
 
     def train(self, feats, to_predict):
         """
@@ -94,5 +107,5 @@ class Algorithm(object):
         """
 
         # Generate the predictions.
-        predictions = self.clf.predict(feats)
+        predictions = self.clf.predict(feats).clip(0.1, 4.9)
         return predictions
