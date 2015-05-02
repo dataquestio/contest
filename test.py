@@ -3,6 +3,7 @@ Run tests on the data.  Used when submitting the answer.
 
 Usage -- python test.py TRAINING_FILE_PATH PREDICTION_FILE_PATH
 """
+from __future__ import print_function
 
 import StringIO
 import argparse
@@ -18,71 +19,73 @@ import algo
 import settings
 
 # Parse input arguments.
-parser = argparse.ArgumentParser(description='Test code to see if it works.')
-parser.add_argument('train_file', type=str, help='The training file to use.')
-parser.add_argument('prediction_file', type=str, help='The file to make predictions on.')
-parser.add_argument('--write', default=False, help='Whether to write results to a file.', action="store_const", const=True, dest="write")
+PARSER = argparse.ArgumentParser(description='Test code to see if it works.')
+PARSER.add_argument('train_file', help='The training file to use.')
+PARSER.add_argument('prediction_file', help='The file to make predictions on.')
+PARSER.add_argument('--write', action="store_true",
+                    help='Whether to write results to a file.')
 
 if __name__ == "__main__":
-    args = parser.parse_args()
+    ARGS = PARSER.parse_args()
 
     # Read the training file.
-    with open(args.train_file) as f:
-        train_data = f.read()
+    with open(ARGS.train_file) as f:
+        TRAIN_DATA = f.read()
 
-    with open(args.prediction_file) as f:
-        prediction_data = f.read()
+    with open(ARGS.prediction_file) as f:
+        PREDICTION_DATA = f.read()
 
-    start = time.time()
+    START_TIME = time.time()
     # Initialize the algorithm class.
-    alg = algo.Algorithm()
+    ALG = algo.Algorithm()
 
     # Generate a dataframe from the train text.
-    train_df = alg.generate_df(train_data)
+    TRAIN_DF = ALG.generate_df(TRAIN_DATA)
     # Get the features from the dataframe
-    train_features = alg.generate_features(train_df, type="train")
+    TRAIN_FEATURES = ALG.generate_features(TRAIN_DF, stage="train")
     # Train the algorithm using the training features.
-    alg.train(train_features, train_df["score"])
+    ALG.train(TRAIN_FEATURES, TRAIN_DF["score"])
 
     # Generate a prediction dataframe.
-    prediction_df = alg.generate_df(prediction_data)
+    PREDICTION_DF = ALG.generate_df(PREDICTION_DATA)
     # Generate features from the dataframe
-    prediction_features = alg.generate_features(prediction_df, type="test")
+    PREDICTION_FEATURES = ALG.generate_features(PREDICTION_DF, stage="test")
     # Make predictions using the prediction dataframe.
-    predictions = alg.predict(prediction_features)
+    PREDICTIONS = ALG.predict(PREDICTION_FEATURES)
 
     # Find how long it took to execute.
-    execution_time = time.time() - start
-    print("Execution time was {0} seconds.\n".format(execution_time))
+    EXECUTION_TIME = time.time() - START_TIME
+    print("Execution time was {0} seconds.\n".format(EXECUTION_TIME))
 
     # We're using RMSE as a metric.
-    error = math.sqrt(mean_squared_error(predictions, prediction_df[settings.PREDICTION_COLUMN]))
-    print("Found root mean squared error of: {0}\n".format(error))
+    ACTUAL_VALUES = PREDICTION_DF[settings.PREDICTION_COLUMN]
+    ERROR = math.sqrt(mean_squared_error(PREDICTIONS, ACTUAL_VALUES))
+    print("Found root mean squared error of: {0}\n".format(ERROR))
 
     # Setup a buffer to capture pep8 output.
-    buffer = StringIO.StringIO()
-    sys.stdout = buffer
+    BUFFER = StringIO.StringIO()
+    sys.stdout = BUFFER
 
     # Initialize and run a pep8 style checker.
-    pep8style = StyleGuide(ignore="E121,E123,E126,E226,E24,E704,E501")
-    pep8style.input_dir(settings.BASE_DIR)
-    report = pep8style.check_files()
+    PEP8STYLE = StyleGuide(ignore="E121,E123,E126,E226,E24,E704,E501")
+    PEP8STYLE.input_dir(settings.BASE_DIR)
+    REPORT = PEP8STYLE.check_files()
 
     # Change stdout back to the original version.
     sys.stdout = sys.__stdout__
 
-    pep8_results = buffer.getvalue()
-    if report.total_errors > 0:
+    PEP8_RESULTS = BUFFER.getvalue()
+    if REPORT.total_errors > 0:
         print("Pep8 violations found!  They are shown below.")
         print("----------------------")
-        print(pep8_results)
+        print(PEP8_RESULTS)
 
     # Write all the results to a file if needed.
-    if args.write:
-        write_data = {
-            "error": error,
-            "execution_time": execution_time,
-            "pep8_results": pep8_results
+    if ARGS.write:
+        WRITE_DATA = {
+            "error": ERROR,
+            "execution_time": EXECUTION_TIME,
+            "pep8_results": PEP8_RESULTS
         }
         with open(settings.RESULTS_FILE, "w+") as f:
-            json.dump(write_data, f)
+            json.dump(WRITE_DATA, f)
