@@ -2,9 +2,9 @@
 This file exists to show how the data set was split into training, validation, and test sets.
 """
 
-import settings
 import math
 import random
+import settings
 
 
 if __name__ == "__main__":

@@ -4,16 +4,18 @@ Run tests on the data.  Used when submitting the answer.
 Usage -- python test.py TRAINING_FILE_PATH PREDICTION_FILE_PATH
 """
 
+import StringIO
 import argparse
-from algo import Algorithm
-import settings
-from sklearn.metrics import mean_squared_error
+import json
 import math
-import pep8
-from StringIO import StringIO
 import sys
 import time
-import json
+
+from pep8 import StyleGuide
+from sklearn.metrics import mean_squared_error
+
+import algo
+import settings
 
 # Parse input arguments.
 parser = argparse.ArgumentParser(description='Test code to see if it works.')
@@ -33,7 +35,7 @@ if __name__ == "__main__":
 
     start = time.time()
     # Initialize the algorithm class.
-    alg = Algorithm()
+    alg = algo.Algorithm()
 
     # Generate a dataframe from the train text.
     train_df = alg.generate_df(train_data)
@@ -58,11 +60,11 @@ if __name__ == "__main__":
     print("Found root mean squared error of: {0}\n".format(error))
 
     # Setup a buffer to capture pep8 output.
-    buffer = StringIO()
+    buffer = StringIO.StringIO()
     sys.stdout = buffer
 
     # Initialize and run a pep8 style checker.
-    pep8style = pep8.StyleGuide(ignore="E121,E123,E126,E226,E24,E704,E501")
+    pep8style = StyleGuide(ignore="E121,E123,E126,E226,E24,E704,E501")
     pep8style.input_dir(settings.BASE_DIR)
     report = pep8style.check_files()
 
