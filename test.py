@@ -6,7 +6,6 @@ Usage -- python test.py TRAINING_FILE_PATH PREDICTION_FILE_PATH
 
 import argparse
 from algo import Algorithm
-import pandas as pd
 import settings
 from sklearn.metrics import mean_squared_error
 import math
