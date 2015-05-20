@@ -1,5 +1,6 @@
 """
-This file exists to show how the data set was split into training, validation, and test sets.
+This file exists to show how the data set was split into training, validation,
+and test sets.
 """
 
 import math
@@ -7,37 +8,45 @@ import random
 import settings
 
 
+_EXCLUDE_FIELDS = (
+    "review/profileName",
+    "review/userId",
+    "review/time",
+)
+
+
+def cleanup_review(data):
+    """Remove a few fields from the reviews."""
+    lines = data.split("\n")
+    return "\n".join(line for line in lines
+                     if not any(line.startswith(field)
+                                for field in _EXCLUDE_FIELDS))
+
+
 if __name__ == "__main__":
     # Open the raw data file that contains all the rows.
     with open(settings.RAW_DATA_FILE) as f:
-        data = f.read()
+        DATA = f.read()
 
-    # Split the data into reviews.
-    reviews = data.split("\n\n")
-    # Randomly shuffle the reviews.
-    random.shuffle(reviews)
+    # Split the data into reviews and randomly downsample.
+    REVIEWS = random.sample([cleanup_review(review)
+                             for review in DATA.split("\n\n")], 40000)
 
-    # Downsample the data to run faster
-    reviews = reviews[:40000]
-    # Remove a few fields from the reviews.
-    for i, r in enumerate(reviews):
-        r = r.split("\n")
-        reviews[i] = "\n".join([l for l in r if not l.startswith("review/profileName") and not l.startswith("review/userId") and not l.startswith("review/time")])
-
-    # Set a subset size -- valid set and test set are each 25% of the data, train set is 50%.
-    subset_size = int(math.floor(len(reviews) / 4))
+    # Set a subset size
+    # valid set and test set are each 25% of the data, train set is 50%.
+    SUBSET_SIZE = int(math.floor(len(REVIEWS) / 4))
 
     # Split the data up into sets.
-    valid_set = reviews[:subset_size]
-    test_set = reviews[subset_size:(subset_size*2)]
-    train_set = reviews[(subset_size*2):]
+    VALID_SET = REVIEWS[:SUBSET_SIZE]
+    TEST_SET = REVIEWS[SUBSET_SIZE:(SUBSET_SIZE * 2)]
+    TRAIN_SET = REVIEWS[(SUBSET_SIZE * 2):]
 
     # Write all of the sets to their respective files.
     with open(settings.TRAIN_DATA_FILE, "w+") as f:
-        f.write("\n\n".join(train_set))
+        f.write("\n\n".join(TRAIN_SET))
 
     with open(settings.VALID_DATA_FILE, "w+") as f:
-        f.write("\n\n".join(valid_set))
+        f.write("\n\n".join(VALID_SET))
 
     with open(settings.TEST_DATA_FILE, "w+") as f:
-        f.write("\n\n".join(test_set))
+        f.write("\n\n".join(TEST_SET))
