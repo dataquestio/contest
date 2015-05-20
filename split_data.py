@@ -8,25 +8,29 @@ import random
 import settings
 
 
+_EXCLUDE_FIELDS = (
+    "review/profileName",
+    "review/userId",
+    "review/time",
+)
+
+
+def cleanup_review(data):
+    """Remove a few fields from the reviews."""
+    lines = data.split("\n")
+    return "\n".join(line for line in lines
+                     if not any(line.startswith(field)
+                                for field in _EXCLUDE_FIELDS))
+
+
 if __name__ == "__main__":
     # Open the raw data file that contains all the rows.
     with open(settings.RAW_DATA_FILE) as f:
         DATA = f.read()
 
-    # Split the data into reviews.
-    REVIEWS = DATA.split("\n\n")
-    # Randomly shuffle the reviews.
-    random.shuffle(REVIEWS)
-
-    # Downsample the data to run faster
-    REVIEWS = REVIEWS[:40000]
-    # Remove a few fields from the reviews.
-    for i, review in enumerate(REVIEWS):
-        lines = review.split("\n")
-        REVIEWS[i] = "\n".join([line for line in lines
-                                if not line.startswith("review/profileName")
-                                and not line.startswith("review/userId")
-                                and not line.startswith("review/time")])
+    # Split the data into reviews and randomly downsample.
+    REVIEWS = random.sample([cleanup_review(review)
+                             for review in DATA.split("\n\n")], 40000)
 
     # Set a subset size
     # valid set and test set are each 25% of the data, train set is 50%.
